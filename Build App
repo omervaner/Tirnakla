@@ -1,0 +1,22 @@
+name: Build App
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install customtkinter pillow openpyxl pyinstaller
+      - run: pyinstaller --name "Tirnakla" --onefile --windowed --icon=assets/icon.png --add-data "assets;assets" --collect-all customtkinter main.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Tirnakla-Windows
+          path: dist/Tirnakla.exe
