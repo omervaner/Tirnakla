@@ -47,9 +47,24 @@ jobs:
           python -m pip install --upgrade pip
           pip install customtkinter pillow openpyxl pyinstaller
 
+      - name: Create .icns icon
+        run: |
+          mkdir -p Tirnakla.iconset
+          sips -z 16 16     assets/icon.png --out Tirnakla.iconset/icon_16x16.png
+          sips -z 32 32     assets/icon.png --out Tirnakla.iconset/icon_16x16@2x.png
+          sips -z 32 32     assets/icon.png --out Tirnakla.iconset/icon_32x32.png
+          sips -z 64 64     assets/icon.png --out Tirnakla.iconset/icon_32x32@2x.png
+          sips -z 128 128   assets/icon.png --out Tirnakla.iconset/icon_128x128.png
+          sips -z 256 256   assets/icon.png --out Tirnakla.iconset/icon_128x128@2x.png
+          sips -z 256 256   assets/icon.png --out Tirnakla.iconset/icon_256x256.png
+          sips -z 512 512   assets/icon.png --out Tirnakla.iconset/icon_256x256@2x.png
+          sips -z 512 512   assets/icon.png --out Tirnakla.iconset/icon_512x512.png
+          sips -z 1024 1024 assets/icon.png --out Tirnakla.iconset/icon_512x512@2x.png
+          iconutil -c icns Tirnakla.iconset
+
       - name: Build with PyInstaller
         run: |
-          python -m PyInstaller --name "Tirnakla" --onefile --windowed --add-data "assets:assets" --collect-all customtkinter main.py
+          python -m PyInstaller --name "Tirnakla" --onefile --windowed --icon=Tirnakla.icns --add-data "assets:assets" --collect-all customtkinter main.py
 
       - name: Create ZIP
         run: |
