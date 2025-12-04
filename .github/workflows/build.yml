@@ -1,0 +1,89 @@
+name: Build App
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install customtkinter pillow openpyxl pyinstaller
+
+      - name: Build with PyInstaller
+        run: |
+          pyinstaller --name "Tirnakla" --onefile --windowed --icon=assets/icon.png --add-data "assets;assets" --collect-all customtkinter main.py
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Tirnakla-Windows
+          path: dist/Tirnakla.exe
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install customtkinter pillow openpyxl pyinstaller
+
+      - name: Build with PyInstaller
+        run: |
+          python -m PyInstaller --name "Tirnakla" --onefile --windowed --add-data "assets:assets" --collect-all customtkinter main.py
+
+      - name: Create ZIP
+        run: |
+          cd dist
+          zip -r Tirnakla-macOS.zip Tirnakla.app
+
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Tirnakla-macOS
+          path: dist/Tirnakla-macOS.zip
+
+  release:
+    needs: [build-windows, build-macos]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: Tirnakla-Windows
+          path: ./windows
+
+      - name: Download macOS artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: Tirnakla-macOS
+          path: ./macos
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            windows/Tirnakla.exe
+            macos/Tirnakla-macOS.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
